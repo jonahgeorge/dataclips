@@ -1,6 +1,7 @@
 package sqlexplorer
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 )
@@ -15,18 +16,34 @@ type queryResponse struct {
 }
 
 func (s *Server) queryHandler(w http.ResponseWriter, r *http.Request) {
-	var in queryRequest
+	in := new(queryRequest)
 
-	err := json.NewDecoder(r.Body).Decode(&in)
+	err := json.NewDecoder(r.Body).Decode(in)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	rows, err := s.db.QueryxContext(r.Context(), in.SQL)
+	out, err := s.queryRPC(r.Context(), in)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	buf, err := json.Marshal(out)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(buf)
+}
+
+func (s *Server) queryRPC(ctx context.Context, in *queryRequest) (*queryResponse, error) {
+	rows, err := s.db.QueryxContext(ctx, in.SQL)
+	if err != nil {
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -35,18 +52,10 @@ func (s *Server) queryHandler(w http.ResponseWriter, r *http.Request) {
 		result := make(map[string]interface{})
 		err = rows.MapScan(result)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return nil, err
 		}
 		results = append(results, result)
 	}
 
-	buf, err := json.Marshal(queryResponse{Rows: results})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(buf)
+	return &queryResponse{Rows: results}, nil
 }
