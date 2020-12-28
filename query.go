@@ -1,4 +1,4 @@
-package sqlexplorer
+package dataclips
 
 import (
 	"context"

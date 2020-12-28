@@ -1,9 +1,10 @@
-package sqlexplorer
+package dataclips
 
 import (
 	_ "embed"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"github.com/Masterminds/sprig"
 )
@@ -29,21 +30,23 @@ type templateData struct {
 func (s *Server) uiHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	sql := r.Form.Get("sql")
-	vars := templateData{SQL: sql}
-
-	vars.Results = func(sql string) results {
+	vars := func(sql string) templateData {
+		sql = strings.TrimSpace(sql)
 		if sql == "" {
-			return results{Warning: "empty sql"}
+			sql = s.PlaceholderQuery
 		}
+
+		vars := templateData{SQL: sql}
 
 		out, err := s.queryRPC(r.Context(), &queryRequest{SQL: sql})
 		if err != nil {
-			return results{Warning: err.Error()}
+			vars.Results.Warning = err.Error()
+			return vars
 		}
 
 		if len(out.Rows) == 0 {
-			return results{Warning: "result set empty"}
+			vars.Results.Warning = "result set empty"
+			return vars
 		}
 
 		var headers []string
@@ -60,11 +63,10 @@ func (s *Server) uiHandler(w http.ResponseWriter, r *http.Request) {
 			rows = append(rows, cols)
 		}
 
-		return results{
-			Headers: headers,
-			Rows:    rows,
-		}
-	}(sql)
+		vars.Results.Headers = headers
+		vars.Results.Rows = rows
+		return vars
+	}(r.Form.Get("sql"))
 
 	err := t.Execute(w, vars)
 	if err != nil {

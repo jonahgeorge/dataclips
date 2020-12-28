@@ -10,16 +10,14 @@
 	<header>
 		<nav class="navbar navbar-dark bg-dark shadow-sm">
 			<div class="container-fluid">
-				<a href="#" class="navbar-brand">
-					Dataclips
-				</a>
+				<a href="#" class="navbar-brand">Dataclips</a>
 			</div>
 		</nav>
 	</header>
-	<main class="container-fluid">
+	<main class="container-fluid pt-3">
 		<form method="GET">
 			<div class="mb-3">
-				<textarea class="form-control" name="sql" style="height: 100px">{{ .SQL }} </textarea>
+				<textarea class="form-control" name="sql" style="height: 100px">{{ .SQL }}</textarea>
 			</div>
 			<div class="mb-3">
 				<button class="btn btn-primary" value="submit">Query</button>
@@ -42,7 +40,7 @@
 				{{ range $row := .Results.Rows }}
 				<tr>
 					{{ range $col := $row }}
-					<td>{{ $col }}</td>
+					<td>{{ toString $col }}</td>
 					{{ end }}
 				</tr>
 				{{ end }}

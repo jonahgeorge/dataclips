@@ -1,4 +1,4 @@
-package sqlexplorer
+package dataclips
 
 import (
 	"database/sql"
@@ -15,16 +15,21 @@ const (
 )
 
 type Server struct {
-	db *sqlx.DB
+	db               *sqlx.DB
+	PlaceholderQuery string
 }
 
 type Config struct {
-	DB     *sql.DB
-	Driver Driver
+	DB               *sql.DB
+	Driver           Driver
+	PlaceholderQuery string
 }
 
 func New(c Config) (*Server, error) {
-	return &Server{db: sqlx.NewDb(c.DB, string(c.Driver))}, nil
+	return &Server{
+		db:               sqlx.NewDb(c.DB, string(c.Driver)),
+		PlaceholderQuery: c.PlaceholderQuery,
+	}, nil
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
