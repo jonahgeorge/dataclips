@@ -22,5 +22,6 @@ func main() {
 		Driver: sqlexplorer.Postgres,
 		DB:     db,
 	})
+
 	http.ListenAndServe(":8080", explorer)
 }

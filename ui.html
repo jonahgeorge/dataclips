@@ -7,57 +7,48 @@
 </head>
 
 <body>
-	<div class="navbar navbar-dark bg-dark shadow-sm">
-		<div class="container">
-			<a href="#" class="navbar-brand d-flex align-items-center">
-				<strong>SQL Explorer</strong>
-			</a>
-		</div>
-	</div>
-
-	<div class="flex-container">
+	<header>
+		<nav class="navbar navbar-dark bg-dark shadow-sm">
+			<div class="container-fluid">
+				<a href="#" class="navbar-brand">
+					Dataclips
+				</a>
+			</div>
+		</nav>
+	</header>
+	<main class="container-fluid">
 		<form method="GET">
-			<textarea class="form-control" name="sql" rows="4"></textarea>
-			<button class="btn btn-primary" value="submit">Query</button>
-			<!-- <button class="btn btn-primary" value="submit">Format</button> -->
+			<div class="mb-3">
+				<textarea class="form-control" name="sql" style="height: 100px">{{ .SQL }} </textarea>
+			</div>
+			<div class="mb-3">
+				<button class="btn btn-primary" value="submit">Query</button>
+			</div>
 		</form>
-	</div>
-
-	<code>
-		{{ .out }}
-	</code>
-
-	<div class="flex-container">
+		{{ if .Results.Warning }}
+		<div class="alert alert-danger" role="alert">
+			{{ .Results.Warning }}
+		</div>
+		{{ end }}
 		<table class="table">
 			<thead>
 				<tr>
-					<th scope="col">#</th>
-					<th scope="col">First</th>
-					<th scope="col">Last</th>
-					<th scope="col">Handle</th>
+					{{ range $header := .Results.Headers }}
+					<th scope="col">{{ $header }}</th>
+					{{ end }}
 				</tr>
 			</thead>
 			<tbody>
+				{{ range $row := .Results.Rows }}
 				<tr>
-					<th scope="row">1</th>
-					<td>Mark</td>
-					<td>Otto</td>
-					<td>@mdo</td>
+					{{ range $col := $row }}
+					<td>{{ $col }}</td>
+					{{ end }}
 				</tr>
-				<tr>
-					<th scope="row">2</th>
-					<td>Jacob</td>
-					<td>Thornton</td>
-					<td>@fat</td>
-				</tr>
-				<tr>
-					<th scope="row">3</th>
-					<td colspan="2">Larry the Bird</td>
-					<td>@twitter</td>
-				</tr>
+				{{ end }}
 			</tbody>
 		</table>
-	</div>
+	</main>
 </body>
 
 </html>
